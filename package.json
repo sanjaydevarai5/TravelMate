@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "node --check app.js && node --check models/Trip.js && node --check controllers/tripController.js"
+    "test": "node --test tests/*.test.js"
   },
   "repository": {
     "type": "git",
