@@ -1,0 +1,33 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: travelmate
+      DB_PASSWORD: ${DB_PASSWORD:-localdevpassword}
+      DB_NAME: travelmate
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-localrootpassword}
+      MYSQL_DATABASE: travelmate
+      MYSQL_USER: travelmate
+      MYSQL_PASSWORD: ${DB_PASSWORD:-localdevpassword}
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./sql/sprint3.sql:/docker-entrypoint-initdb.d/01-sprint3.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+volumes:
+  db_data:
