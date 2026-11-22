@@ -1,34 +1,21 @@
 {
-  "name": "travelmate",
+  "name": "sd2-example",
   "version": "1.0.0",
-  "description": "TravelMate is a travel planning and trip management web application developed as a group project for Software Development 2.",
-  "main": "app.js",
+  "description": "",
+  "main": "index.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js",
-    "test": "node --test tests/*.test.js"
+    "start": "supervisor index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/sanjaydevarai5/TravelMate.git"
-  },
-  "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/sanjaydevarai5/TravelMate/issues"
-  },
-  "homepage": "https://github.com/sanjaydevarai5/TravelMate#readme",
   "dependencies": {
-    "bcrypt": "^6.0.0",
-    "dotenv": "^18.0.7",
-    "express": "^5.3.0",
-    "express-session": "^1.19.0",
-    "mysql2": "^3.24.6",
-    "pug": "^3.0.4"
-  },
-  "devDependencies": {
-    "nodemon": "^3.1.14"
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "mysql": "^2.18.1",
+    "mysql2": "^2.3.0",
+    "pug": "^3.0.3",
+    
+    "supervisor": "^0.12.0"
   }
 }
