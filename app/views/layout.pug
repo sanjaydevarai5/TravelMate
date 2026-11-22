@@ -3,11 +3,12 @@ html(lang='en')
   head
     meta(charset='UTF-8')
     meta(name='viewport', content='width=device-width, initial-scale=1')
+    meta(name='description', content='Thoughtful, human-led travel planning with clear itineraries and transparent estimates.')
     title
       block title
         | TravelMate
+    link(rel='stylesheet', href='/style.css')
   body
-    header
-      h1 TravelMate
-    main
+    include navbar
+    main#main-content
       block content
