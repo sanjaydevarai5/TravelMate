@@ -1,0 +1,40 @@
+extends layout
+
+block title
+  | Contact TravelMate
+
+block content
+  section.information-page.contact-page
+    .information-shell.contact-shell
+      p.eyebrow Contact
+      h1 Get in touch about your travel plans.
+      p.information-lead Contact your travel agent to discuss destinations, trip details or changes to a proposal.
+
+      .contact-layout
+        .contact-copy
+          h2 How we can help
+          p Your travel agent can answer questions about an itinerary, explain cost estimates and review requested adjustments.
+          p For a proposal already in TravelMate, use its reference number when you contact your agent.
+          .contact-note
+            strong Privacy matters
+            span Do not share payment details or passport information through this page.
+        .contact-panel
+          h2 Send a message
+          p Contact form interface
+          .contact-fields(role='form', aria-label='Contact form interface')
+            label.form-field
+              span Your name
+              input(type='text', autocomplete='name', placeholder='Name')
+            label.form-field
+              span Email address
+              input(type='email', autocomplete='email', placeholder='Email address')
+            label.form-field
+              span What is your message about?
+              select
+                option General enquiry
+                option Existing proposal
+                option Itinerary question
+            label.form-field
+              span Message
+              textarea(rows='5', placeholder='How can your travel agent help?')
+            button.button.button-primary(type='button') Send message
