@@ -1,0 +1,39 @@
+extends layout
+block content
+  section.container.section
+    a.back(href="/trips") ← Back to all trips
+    .hero-panel
+      span.pill= trip.status
+      h1= trip.title
+      p #{trip.destination} · Traveller: #{trip.traveller_name}
+      p.muted #{new Date(trip.start_date).toLocaleDateString('en-GB')} — #{new Date(trip.end_date).toLocaleDateString('en-GB')}
+      p.price £#{Number(trip.estimated_total).toFixed(2)} indicative total
+      p.small Estimates are illustrative; this website does not make bookings or payments.
+    .split
+      .main-column
+        h2 Day-by-day itinerary
+        each day in trip.days
+          article.card.day
+            span.eyebrow Day #{day.day_number}
+            h3= day.title
+            p.muted= day.description
+            if day.activities.length
+              ul
+                each activity in day.activities
+                  li
+                    strong= activity.title
+                    |  — #{activity.location}
+                    if activity.notes
+                      p.muted= activity.notes
+      aside
+        h2 Estimated costs
+        .card
+          each cost in trip.costs
+            .cost-row
+              span= cost.category
+              strong £#{Number(cost.amount).toFixed(2)}
+          hr
+          .cost-row
+            strong Estimated total
+            strong £#{Number(trip.estimated_total).toFixed(2)}
+          p.small Costs are not live quotations.
