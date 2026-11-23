@@ -13,7 +13,7 @@ app.use(express.static(path.join(__dirname, '..', 'static')));
 // Get the functions in the db.js file to use
 const db = require('./services/db');
 
-// Helpers used by the read-only dashboard
+// Helpers used by the read-only dashboard and trip detail routes
 const planStatuses = ['Draft', 'Shared', 'Approved'];
 const sortOptions = {
     recent: 'p.updated_at DESC, p.plan_id DESC',
@@ -37,6 +37,11 @@ function cleanBudget(value) {
     if (typeof value !== 'string' || value.trim() === '') return '';
     const amount = Number(value);
     return Number.isFinite(amount) && amount >= 0 && amount <= 1000000 ? amount.toFixed(2) : '';
+}
+
+function cleanId(value) {
+    const id = cleanText(value, 12);
+    return /^[1-9]\d*$/.test(id) ? id : '';
 }
 
 function displayMoney(amount, currency) {
@@ -74,6 +79,8 @@ app.get('/dashboard', async function(req, res) {
         search: cleanText(req.query.search, 100),
         status: planStatuses.includes(req.query.status) ? req.query.status : '',
         destination: cleanText(req.query.destination, 160),
+        travellerId: cleanId(req.query.traveller),
+        agentId: cleanId(req.query.agent),
         startAfter: cleanDate(req.query.start_after),
         startBefore: cleanDate(req.query.start_before),
         budgetMax: cleanBudget(req.query.budget_max),
@@ -95,6 +102,14 @@ app.get('/dashboard', async function(req, res) {
     if (filters.destination) {
         conditions.push('p.destination = ?');
         values.push(filters.destination);
+    }
+    if (filters.travellerId) {
+        conditions.push('p.traveller_id = ?');
+        values.push(filters.travellerId);
+    }
+    if (filters.agentId) {
+        conditions.push('p.agent_id = ?');
+        values.push(filters.agentId);
     }
     if (filters.startAfter) {
         conditions.push('p.start_date >= ?');
@@ -137,10 +152,12 @@ app.get('/dashboard', async function(req, res) {
         LIMIT 100`;
 
     try {
-        const [plans, groupedStatuses, destinations] = await Promise.all([
+        const [plans, groupedStatuses, destinations, travellers, agents] = await Promise.all([
             db.query(plansSql, values),
             db.query('SELECT status, COUNT(*) AS count FROM tour_plans GROUP BY status', []),
-            db.query('SELECT DISTINCT destination FROM tour_plans ORDER BY destination', [])
+            db.query('SELECT DISTINCT destination FROM tour_plans ORDER BY destination', []),
+            db.query('SELECT traveller_id, display_name FROM travellers ORDER BY display_name', []),
+            db.query('SELECT agent_id, display_name FROM travel_agents ORDER BY display_name', [])
         ]);
 
         const countByStatus = Object.fromEntries(groupedStatuses.map(function(row) {
@@ -161,6 +178,8 @@ app.get('/dashboard', async function(req, res) {
                 });
             }),
             destinations: destinations.map(function(row) { return row.destination; }),
+            travellers: travellers,
+            agents: agents,
             statusTotals: statusTotals,
             loadError: ''
         });
@@ -170,6 +189,8 @@ app.get('/dashboard', async function(req, res) {
             filters: filters,
             plans: [],
             destinations: [],
+            travellers: [],
+            agents: [],
             statusTotals: [
                 { name: 'All plans', count: 0 },
                 ...planStatuses.map(function(name) { return { name: name, count: 0 }; })

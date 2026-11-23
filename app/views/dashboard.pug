@@ -43,6 +43,18 @@ block content
               each destination in destinations
                 option(value=destination, selected=filters.destination === destination)= destination
           label.filter-field
+            span Traveller
+            select(name='traveller')
+              option(value='', selected=filters.travellerId === '') All travellers
+              each traveller in travellers
+                option(value=traveller.traveller_id, selected=filters.travellerId == traveller.traveller_id)= traveller.display_name
+          label.filter-field
+            span Travel agent
+            select(name='agent')
+              option(value='', selected=filters.agentId === '') All agents
+              each agent in agents
+                option(value=agent.agent_id, selected=filters.agentId == agent.agent_id)= agent.display_name
+          label.filter-field
             span Departure from
             input(type='date', name='start_after', value=filters.startAfter)
           label.filter-field
