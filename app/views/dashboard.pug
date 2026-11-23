@@ -1,0 +1,104 @@
+extends layout
+
+block title
+  | Tour plan dashboard — TravelMate
+
+block content
+  section.dashboard-page
+    .dashboard-shell
+      .page-heading.dashboard-heading
+        div
+          p.eyebrow Travel agent workspace
+          h1 Tour plans
+          p Review current proposals, destinations, schedules and estimated costs.
+        a.button.button-secondary(href='/') Back to home
+
+      .status-summary(aria-label='Plan totals by status')
+        each total in statusTotals
+          article.status-total
+            span.status-total-label= total.name
+            strong= total.count
+
+      form.filter-panel(method='get', action='/dashboard')
+        .filter-heading
+          div
+            h2 Find a plan
+            p Search and filter the records from MySQL.
+          a.clear-filters(href='/dashboard') Clear filters
+        .filter-grid
+          label.filter-field.filter-search
+            span Search
+            input(type='search', name='search', value=filters.search, placeholder='Plan, destination, traveller, agent or reference')
+          label.filter-field
+            span Status
+            select(name='status')
+              option(value='', selected=filters.status === '') All statuses
+              option(value='Draft', selected=filters.status === 'Draft') Draft
+              option(value='Shared', selected=filters.status === 'Shared') Shared
+              option(value='Approved', selected=filters.status === 'Approved') Approved
+          label.filter-field
+            span Destination
+            select(name='destination')
+              option(value='', selected=filters.destination === '') All destinations
+              each destination in destinations
+                option(value=destination, selected=filters.destination === destination)= destination
+          label.filter-field
+            span Departure from
+            input(type='date', name='start_after', value=filters.startAfter)
+          label.filter-field
+            span Departure to
+            input(type='date', name='start_before', value=filters.startBefore)
+          label.filter-field
+            span Estimated budget up to (GBP)
+            input(type='number', name='budget_max', min='0', step='50', value=filters.budgetMax, placeholder='No limit')
+          label.filter-field
+            span Sort by
+            select(name='sort')
+              option(value='recent', selected=filters.sort === 'recent') Recently updated
+              option(value='start_soon', selected=filters.sort === 'start_soon') Departure date
+              option(value='cost_low', selected=filters.sort === 'cost_low') Lowest estimate
+              option(value='cost_high', selected=filters.sort === 'cost_high') Highest estimate
+        .filter-actions
+          button.button.button-primary(type='submit') Apply filters
+
+      if loadError
+        .dashboard-alert(role='alert')= loadError
+      else if plans.length
+        .results-heading
+          h2 Plans
+          span Showing #{plans.length} of up to 100 records
+        .table-shell
+          table.plan-table
+            thead
+              tr
+                th(scope='col') Plan
+                th(scope='col') Destination
+                th(scope='col') Traveller
+                th(scope='col') Travel agent
+                th(scope='col') Dates
+                th(scope='col') Itinerary
+                th(scope='col') Estimated total
+                th(scope='col') Status
+            tbody
+              each plan in plans
+                tr
+                  td.plan-cell
+                    strong= plan.title
+                    small= plan.reference_code
+                  td= plan.destination
+                  td= plan.traveller_name
+                  td= plan.agent_name
+                  td.date-cell
+                    span= plan.start_date_label
+                    small to #{plan.end_date_label}
+                  td.itinerary-count #{plan.day_count} days · #{plan.activity_count} activities
+                  td.money-cell
+                    strong= plan.estimated_total_label
+                    small Estimate only
+                  td
+                    span.status-pill(class='status-' + plan.status.toLowerCase())= plan.status
+      else
+        .empty-state
+          h2 No plans match those filters
+          p Adjust the search or filters to see more tour plans.
+          a.text-link(href='/dashboard') Clear filters
