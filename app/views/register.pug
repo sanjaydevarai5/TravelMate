@@ -1,0 +1,33 @@
+extends layout
+
+block title
+  | Create an account — TravelMate
+
+block content
+  section.auth-page
+    .auth-card.auth-card-wide
+      p.eyebrow Join TravelMate
+      h1 Create your account
+      p.auth-intro Keep your travel proposals easy to find and review.
+      .auth-fields(role='form', aria-label='Registration interface')
+        label.form-field
+          span Full name
+          input(type='text', autocomplete='name', placeholder='Your name')
+        label.form-field
+          span Email address
+          input(type='email', autocomplete='email', placeholder='Email address')
+        label.form-field
+          span I am a
+          select
+            option Traveller
+            option Travel agent
+        label.form-field
+          span Password
+          input(type='password', autocomplete='new-password', placeholder='Create a password')
+        label.form-field
+          span Confirm password
+          input(type='password', autocomplete='new-password', placeholder='Enter your password again')
+        button.button.button-primary(type='button') Create account
+      p.auth-switch
+        | Already have an account?
+        a(href='/login') Sign in
