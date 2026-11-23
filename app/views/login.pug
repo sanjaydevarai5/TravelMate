@@ -1,0 +1,22 @@
+extends layout
+
+block title
+  | Sign in — TravelMate
+
+block content
+  section.auth-page
+    .auth-card
+      p.eyebrow Welcome back
+      h1 Sign in to TravelMate
+      p.auth-intro Open your travel plans and review shared proposals.
+      .auth-fields(role='form', aria-label='Sign-in interface')
+        label.form-field
+          span Email address
+          input(type='email', autocomplete='email', placeholder='Email address')
+        label.form-field
+          span Password
+          input(type='password', autocomplete='current-password', placeholder='Password')
+        button.button.button-primary(type='button') Sign in
+      p.auth-switch
+        | New to TravelMate?
+        a(href='/register') Create an account
