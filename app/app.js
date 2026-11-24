@@ -51,6 +51,16 @@ function displayMoney(amount, currency) {
     }).format(Number(amount || 0));
 }
 
+function safeHttpsUrl(value) {
+    if (!value) return null;
+    try {
+        const parsed = new URL(value);
+        return parsed.protocol === 'https:' ? parsed.href : null;
+    } catch (error) {
+        return null;
+    }
+}
+
 // Create a route for root - /
 app.get('/', function(req, res) {
     res.render('home');
@@ -200,6 +210,83 @@ app.get('/dashboard', async function(req, res) {
     }
 });
 
+// Read-only proposal detail route
+app.get('/trips/:id', async function(req, res) {
+    if (!/^\d+$/.test(req.params.id)) return res.status(404).render('not-found');
+    const planId = Number(req.params.id);
+
+    try {
+        const plans = await db.query(`
+            SELECT p.*, DATE_FORMAT(p.start_date, '%d %B %Y') AS start_date_label,
+                DATE_FORMAT(p.end_date, '%d %B %Y') AS end_date_label,
+                DATE_FORMAT(p.updated_at, '%d %b %Y, %H:%i') AS updated_at_label,
+                t.display_name AS traveller_name, t.party_size,
+                a.display_name AS agent_name, a.speciality AS agent_speciality
+            FROM tour_plans p
+            JOIN travellers t ON t.traveller_id = p.traveller_id
+            JOIN travel_agents a ON a.agent_id = p.agent_id
+            WHERE p.plan_id = ?
+            LIMIT 1`, [planId]);
+
+        if (!plans.length) return res.status(404).render('not-found');
+        const plan = plans[0];
+
+        const [itineraryRows, flights, costs, videos, feedback] = await Promise.all([
+            db.query(`
+                SELECT d.day_number, DATE_FORMAT(d.travel_date, '%a, %d %b %Y') AS travel_date_label,
+                    d.city, d.summary, ac.activity_id, ac.start_time, ac.title AS activity_title,
+                    ac.location, ac.notes AS activity_notes, ac.estimated_cost, ac.currency
+                FROM tour_days d
+                LEFT JOIN activities ac ON ac.day_id = d.day_id
+                WHERE d.plan_id = ?
+                ORDER BY d.day_number, ac.start_time`, [planId]),
+            db.query(`SELECT *, DATE_FORMAT(departure_date, '%d %b %Y') AS departure_date_label,
+                DATE_FORMAT(return_date, '%d %b %Y') AS return_date_label
+                FROM flight_estimates WHERE plan_id = ? LIMIT 1`, [planId]),
+            db.query('SELECT * FROM trip_costs WHERE plan_id = ? ORDER BY cost_id', [planId]),
+            db.query('SELECT * FROM travel_videos WHERE plan_id = ? ORDER BY video_id', [planId]),
+            db.query(`SELECT message, feedback_status, DATE_FORMAT(submitted_at, '%d %b %Y, %H:%i') AS submitted_at_label
+                FROM traveller_feedback WHERE plan_id = ? ORDER BY submitted_at DESC`, [planId])
+        ]);
+
+        const daysByNumber = new Map();
+        itineraryRows.forEach(function(row) {
+            if (!daysByNumber.has(row.day_number)) {
+                daysByNumber.set(row.day_number, {
+                    day_number: row.day_number,
+                    travel_date_label: row.travel_date_label,
+                    city: row.city,
+                    summary: row.summary,
+                    activities: []
+                });
+            }
+            if (row.activity_id) {
+                daysByNumber.get(row.day_number).activities.push(Object.assign({}, row, {
+                    estimated_cost_label: displayMoney(row.estimated_cost, row.currency)
+                }));
+            }
+        });
+
+        res.render('trip-detail', {
+            plan: Object.assign({}, plan, {
+                estimated_total_label: displayMoney(plan.estimated_total, plan.currency)
+            }),
+            days: Array.from(daysByNumber.values()),
+            flights: flights[0] || null,
+            costs: costs.map(function(cost) {
+                return Object.assign({}, cost, { amount_label: displayMoney(cost.amount, cost.currency) });
+            }),
+            videos: videos.map(function(video) {
+                return Object.assign({}, video, { safe_url: safeHttpsUrl(video.video_url) });
+            }),
+            feedback: feedback
+        });
+    } catch (error) {
+        console.error('Trip detail database read failed:', error.message);
+        res.status(503).render('service-unavailable');
+    }
+});
+
 app.get('/health', async function(req, res) {
     try {
         await db.query('SELECT 1', []);
@@ -233,6 +320,10 @@ app.get('/goodbye', function(req, res) {
 app.get('/hello/:name', function(req, res) {
     console.log(req.params);
     res.send('Hello ' + req.params.name);
+});
+
+app.use(function(req, res) {
+    res.status(404).render('not-found');
 });
 
 // Start server on port 3000

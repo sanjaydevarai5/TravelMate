@@ -1,0 +1,140 @@
+extends layout
+
+block title
+  | #{plan.title} — TravelMate
+
+block content
+  section.detail-page
+    .detail-shell
+      a.back-link(href='/dashboard') ← Back to dashboard
+      .detail-heading
+        .detail-title-group
+          .detail-title-row
+            h1= plan.title
+            span.status-pill(class='status-' + plan.status.toLowerCase())= plan.status
+          p.detail-reference #{plan.reference_code} · Updated #{plan.updated_at_label}
+        p.detail-total
+          span Indicative total
+          strong= plan.estimated_total_label
+
+      .detail-overview
+        .overview-item
+          span Destination
+          strong= plan.destination
+        .overview-item
+          span Travelling from
+          strong= plan.origin
+        .overview-item
+          span Travel dates
+          strong #{plan.start_date_label} – #{plan.end_date_label}
+        .overview-item
+          span Travellers
+          strong #{plan.party_size} traveller#{plan.party_size === 1 ? '' : 's'}
+        .overview-item
+          span Prepared by
+          strong= plan.agent_name
+        .overview-item
+          span Plan reference
+          strong= plan.reference_code
+
+      .detail-columns
+        .detail-main-column
+          section.detail-panel
+            .panel-heading
+              div
+                p.eyebrow Itinerary
+                h2 Day by day
+              span.panel-count #{days.length} days
+            if days.length
+              .detail-days
+                each day in days
+                  article.detail-day
+                    .detail-day-heading
+                      span.day-number Day #{day.day_number}
+                      span= day.travel_date_label
+                      strong= day.city
+                    p.day-summary= day.summary
+                    if day.activities.length
+                      ul.activity-list
+                        each activity in day.activities
+                          li
+                            if activity.start_time
+                              time= String(activity.start_time).slice(0, 5)
+                            div
+                              strong= activity.activity_title
+                              span= activity.location
+                              if activity.activity_notes
+                                p= activity.activity_notes
+                            if Number(activity.estimated_cost) > 0
+                              span.activity-estimate= activity.estimated_cost_label
+            else
+              p.empty-inline No itinerary days have been added.
+
+          section.detail-panel
+            .panel-heading
+              div
+                p.eyebrow Traveller feedback
+                h2 Feedback history
+            if feedback.length
+              ul.feedback-list
+                each item in feedback
+                  li
+                    p= item.message
+                    .feedback-meta
+                      span= item.submitted_at_label
+                      span.feedback-status= item.feedback_status
+            else
+              p.empty-inline No traveller feedback is recorded.
+
+        aside.detail-side-column
+          section.detail-panel
+            p.eyebrow Flights
+            h2 Proposed routing
+            if flights
+              .flight-route
+                div
+                  span Outbound
+                  strong= flights.outbound_route
+                div
+                  span Return
+                  strong= flights.return_route
+              p.flight-date #{flights.departure_date_label} – #{flights.return_date_label}
+              p.cost-warning= flights.estimate_note
+            else
+              p.empty-inline No flight estimate is recorded.
+
+          section.detail-panel
+            p.eyebrow Cost breakdown
+            h2 Estimated costs
+            if costs.length
+              ul.cost-breakdown
+                each cost in costs
+                  li
+                    div
+                      strong= cost.category
+                      small= cost.inclusion_note
+                    span= cost.amount_label
+              .cost-total
+                span Indicative total
+                strong= plan.estimated_total_label
+              p.cost-warning Amounts are estimates. Availability and prices are not confirmed.
+            else
+              p.empty-inline No cost details are recorded.
+
+          section.detail-panel
+            p.eyebrow Destination links
+            h2 Travel videos
+            if videos.length
+              ul.video-list
+                each video in videos
+                  li
+                    div
+                      strong= video.title
+                      span.video-status= video.review_status === 'Verified' ? 'Checked by travel agent' : 'Awaiting agent review'
+                    if video.safe_url && video.review_status === 'Verified'
+                      a(href=video.safe_url, target='_blank', rel='noopener noreferrer') Open video ↗
+            else
+              p.empty-inline No destination video links are recorded.
+            p.cost-warning Links only appear after the travel agent checks them.
+
+      .detail-disclaimer(role='note') This proposal and its confirmation are not a booking. No flight or activity has been reserved or paid for.

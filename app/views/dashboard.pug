@@ -91,6 +91,7 @@ block content
                 th(scope='col') Itinerary
                 th(scope='col') Estimated total
                 th(scope='col') Status
+                th(scope='col')
             tbody
               each plan in plans
                 tr
@@ -109,6 +110,8 @@ block content
                     small Estimate only
                   td
                     span.status-pill(class='status-' + plan.status.toLowerCase())= plan.status
+                  td
+                    a.row-link(href='/trips/' + plan.plan_id, aria-label='Read ' + plan.title) View
       else
         .empty-state
           h2 No plans match those filters
